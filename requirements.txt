@@ -13,6 +13,6 @@ tenacity
 typing_extensions
 tzdata
 urllib3
-guniocorn
+gunicorn<4.4
 whitenoise
 
