@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CVE Comparison Wizard</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- jQuery + Chart.js -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Optional: Tailwind theme tweaks -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:  '#2563eb',  /* blue-600 */
+            accent:   '#4ade80',  /* green-400 */
+            neutral:  '#f3f4f6',  /* gray-100 */
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-neutral min-h-screen flex items-center justify-center">
+
+  <!-- ===== Trigger button (can live anywhere) ===== -->
+  <button id="launch"
+          class="px-5 py-2 rounded-lg bg-primary text-white shadow-md hover:bg-blue-700 transition">
+    Compare CVEs
+  </button>
+
+  <!-- ===== Modal root ===== -->
+  <div id="cveModal"
+       class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm">
+
+    <div class="relative w-full max-w-4xl mx-4 sm:mx-0">
+      <!-- Card wrapper -->
+      <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-primary">
+          <h2 class="text-lg sm:text-xl font-semibold text-white select-none">
+            CVE Comparison
+          </h2>
+          <button id="closeModal"
+                  class="text-white hover:text-indigo-200 rotate-45 text-2xl leading-none">
+            ✕
+          </button>
+        </div>
+
+        <!-- ===== STEP 1 : Choose artefacts ===== -->
+        <div id="stepSelect" class="p-6 space-y-4">
+          <div class="grid gap-4 sm:grid-cols-3">
+            <select id="ddProject"
+                    class="w-full border-gray-300 rounded-md py-2 px-3 focus:ring-primary focus:border-primary">
+              <option disabled selected>Project …</option>
+              <option value="A">Project A</option>
+              <option value="B">Project B</option>
+            </select>
+
+            <select id="ddBranch"
+                    class="w-full border-gray-300 rounded-md py-2 px-3 focus:ring-primary focus:border-primary">
+              <option disabled selected>Branch …</option>
+              <option value="B1">Branch 1</option>
+              <option value="B2">Branch 2</option>
+            </select>
+
+            <select id="ddRelease"
+                    class="w-full border-gray-300 rounded-md py-2 px-3 focus:ring-primary focus:border-primary">
+              <option disabled selected>Release …</option>
+              <option value="R1">E-Release 1</option>
+              <option value="R2">E-Release 2</option>
+            </select>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-2">
+            <button class="btnCancel px-4 py-2 rounded-md border"
+                    >Cancel</button>
+
+            <button id="btnCompare"
+                    class="px-6 py-2 rounded-md bg-accent text-white hover:bg-green-500 transition">
+              Compare
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== STEP 2 : Results ===== -->
+        <div id="stepResult" class="hidden p-6">
+          <!-- Back arrow -->
+          <button id="goBack"
+                  class="mb-4 inline-flex items-center text-primary hover:underline">
+            ← Back
+          </button>
+
+          <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Lists + quick actions -->
+            <div class="flex-1 space-y-4">
+              <div class="border rounded-lg overflow-hidden">
+                <div class="flex">
+                  <button class="flex-1 bg-primary text-white py-2">Common CVE list</button>
+                  <span class="flex-1 text-sm flex items-center justify-center">
+                    CVEs unique module 1
+                  </span>
+                  <span class="flex-1 text-sm flex items-center justify-center">
+                    CVEs unique module 2
+                  </span>
+                </div>
+              </div>
+
+              <div class="border rounded-lg overflow-hidden">
+                <div class="flex">
+                  <button class="flex-1 bg-primary text-white py-2">Common CPE list</button>
+                  <span class="flex-1 text-sm flex items-center justify-center">
+                    CPEs unique module 1
+                  </span>
+                  <span class="flex-1 text-sm flex items-center justify-center">
+                    CPEs unique module 2
+                  </span>
+                </div>
+              </div>
+
+              <!-- Quick actions -->
+              <div>
+                <label class="block font-medium mb-1">Quick actions</label>
+                <select class="border rounded-md px-3 py-2 w-full focus:ring-primary focus:border-primary">
+                  <option>Merge CVE status</option>
+                  <option>Generate report</option>
+                  <option>Merge SBOMs</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="w-full lg:w-80">
+              <canvas id="chartCVEs"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /card -->
+    </div><!-- /modal inner -->
+  </div><!-- /modal root -->
+
+  <!-- ===== JS behaviour ===== -->
+  <script>
+    const $modal   = $('#cveModal');
+    const $stepSel = $('#stepSelect');
+    const $stepRes = $('#stepResult');
+
+    // open / close helpers
+    const openModal  = () => $modal.removeClass('hidden flex').addClass('flex');
+    const closeModal = () => $modal.addClass('hidden');
+
+    $('#launch').on('click', openModal);
+    $('#closeModal, .btnCancel').on('click', closeModal);
+
+    // back to dropdowns
+    $('#goBack').on('click', () => {
+      $stepRes.addClass('hidden');
+      $stepSel.removeClass('hidden');
+    });
+
+    // compare -> switch step & draw chart
+    $('#btnCompare').on('click', () => {
+      $stepSel.addClass('hidden');
+      $stepRes.removeClass('hidden');
+
+      // dummy data — replace via AJAX/Django later
+      const vals = [40, 35, 25];
+      const ctx  = document.getElementById('chartCVEs');
+
+      // destroy existing chart if any
+      if (ctx._chart) { ctx._chart.destroy(); }
+
+      ctx._chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Same CVEs', 'Unique module 1', 'Unique module 2'],
+          datasets: [{
+            data: vals,
+            backgroundColor: ['#38bdf8', '#f87171', '#facc15']
+          }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+      });
+    });
+  </script>
+</body>
+</html>
