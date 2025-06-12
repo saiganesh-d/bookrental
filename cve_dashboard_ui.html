@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVE Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body { padding: 0 20px; }
+    .navbar { margin-bottom: 20px; }
+    .top-controls { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
+    .dashboard-buttons { height: 5%; margin-bottom: 20px; display: flex; gap: 10px; justify-content: flex-end; }
+    .charts-row { display: flex; justify-content: space-between; margin-bottom: 20px; height: 30%; }
+    .chart-box { width: 49%; background: #f8f9fa; padding: 15px; border-radius: 10px; }
+    .filter-input { width: 100%; }
+    th input, th select { width: 100%; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">CVE Dashboard</a>
+    <div class="ms-auto d-flex">
+      <select id="projectBranchSelect" class="form-select me-2">
+        <option selected>Project A - Branch X</option>
+        <option>Project A - Branch Y</option>
+        <option>Project B - Branch Z</option>
+      </select>
+      <select id="releaseSelect" class="form-select">
+        <option selected>Release 1.0</option>
+        <option>Release 2.0</option>
+      </select>
+    </div>
+  </nav>
+
+  <!-- Dashboard Buttons -->
+  <div class="dashboard-buttons">
+    <button class="btn btn-outline-primary">Refresh</button>
+    <button class="btn btn-outline-secondary">Export</button>
+    <button class="btn btn-outline-success">Bulk Update</button>
+    <button class="btn btn-outline-warning">Raise Jira</button>
+    <button class="btn btn-outline-danger">Delete Selected</button>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-box">
+      <h6>Tool States (Severity Stacked)</h6>
+      <canvas id="toolStateChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h6>Top 5 Software CVEs (Severity Stacked)</h6>
+      <canvas id="topSoftwareChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Filter Toggle Button -->
+  <div class="mb-2">
+    <button class="btn btn-sm btn-info" id="toggleFilter">Toggle Filters</button>
+  </div>
+
+  <!-- CVE Table -->
+  <table class="table table-bordered table-striped" id="cveTable">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="selectAll"></th>
+        <th>CVE ID<br><input type="text" class="form-control form-control-sm filter-input" placeholder="Search CVE ID"></th>
+        <th>Last Updated<br><input type="date" class="form-control form-control-sm filter-input"></th>
+        <th>Description<br><input type="text" class="form-control form-control-sm filter-input" placeholder="Search Description"></th>
+        <th>Severity & Score<br>
+          <select class="form-select form-select-sm filter-input" multiple>
+            <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+          </select>
+        </th>
+        <th>Fixed At<br><input type="text" class="form-control form-control-sm filter-input" maxlength="10"></th>
+        <th>Tool Status<br>
+          <select class="form-select form-select-sm filter-input" multiple>
+            <option>Status 1</option>
+            <option>Status 2</option>
+            <!-- add all 11 statuses -->
+          </select>
+        </th>
+        <th>Jira / Starc<br><input type="text" class="form-control form-control-sm filter-input"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Dynamic CVE rows will be injected here via Django or JS -->
+    </tbody>
+  </table>
+
+  <!-- Chart JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#toggleFilter').click(function() {
+        $('.filter-input').toggle();
+      });
+
+      $('#selectAll').on('click', function() {
+        const checked = $(this).prop('checked');
+        $('#cveTable tbody input[type="checkbox"]').prop('checked', checked);
+      });
+
+      // Placeholder charts
+      const toolCtx = document.getElementById('toolStateChart').getContext('2d');
+      new Chart(toolCtx, {
+        type: 'bar',
+        data: { labels: ['Tool1', 'Tool2'], datasets: [] },
+        options: { responsive: true, stacked: true }
+      });
+
+      const softwareCtx = document.getElementById('topSoftwareChart').getContext('2d');
+      new Chart(softwareCtx, {
+        type: 'bar',
+        data: { labels: ['Soft1', 'Soft2'], datasets: [] },
+        options: { responsive: true, stacked: true }
+      });
+    });
+  </script>
+
+</body>
+</html>

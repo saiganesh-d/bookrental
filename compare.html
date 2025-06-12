@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CVE Comparison</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+
+  <!-- Compare CVEs Button -->
+  <button id="openModal" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    Compare CVEs
+  </button>
+
+  <!-- Modal -->
+  <div id="compareModal" class="hidden fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
+    <div class="bg-white p-6 rounded shadow-md w-[300px] space-y-4">
+      <select id="projectDropdown" class="w-full border px-2 py-1">
+        <option selected disabled>Select Project</option>
+        <option>Project A</option>
+        <option>Project B</option>
+      </select>
+      <select id="branchDropdown" class="w-full border px-2 py-1">
+        <option selected disabled>Select SW Branch</option>
+        <option>Branch 1</option>
+        <option>Branch 2</option>
+      </select>
+      <select id="releaseDropdown" class="w-full border px-2 py-1">
+        <option selected disabled>Select E-Release</option>
+        <option>Release X</option>
+        <option>Release Y</option>
+      </select>
+
+      <div class="flex justify-between">
+        <button id="cancelModal" class="border px-4 py-1">Cancel</button>
+        <button id="compareNow" class="bg-green-600 text-white px-4 py-1 rounded">Compare</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison UI -->
+  <div id="comparisonBox" class="hidden mt-6 bg-white p-6 rounded shadow-md">
+    <h2 class="text-xl font-semibold mb-4">CVE Comparison</h2>
+
+    <div class="flex space-x-6">
+      <div>
+        <div class="mb-2">
+          <button class="bg-blue-500 text-white px-3 py-1 rounded">Common CVE list</button>
+          <span> CVEs unique module 1 | CVEs unique module 2</span>
+        </div>
+        <div class="mb-2">
+          <button class="bg-blue-500 text-white px-3 py-1 rounded">Common CPE list</button>
+          <span> CPEs unique module 1 | CPE unique module 2</span>
+        </div>
+
+        <div class="mt-4">
+          <label class="font-medium block mb-1">Quick Actions</label>
+          <select class="border px-2 py-1">
+            <option>Merge CVE status</option>
+            <option>Generate report</option>
+            <option>Merge SBOMs</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="w-[200px]">
+        <canvas id="cveChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Modal toggle
+    $('#openModal').click(() => $('#compareModal').removeClass('hidden'));
+    $('#cancelModal').click(() => $('#compareModal').addClass('hidden'));
+
+    $('#compareNow').click(() => {
+      $('#compareModal').addClass('hidden');
+      $('#comparisonBox').removeClass('hidden');
+
+      // Draw chart
+      const ctx = document.getElementById('cveChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Same CVEs', 'Unique CVEs in module 1', 'Unique CVEs in module 2'],
+          datasets: [{
+            data: [40, 30, 30],
+            backgroundColor: ['#4ade80', '#facc15', '#f87171']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

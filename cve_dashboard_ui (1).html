@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CVE Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .navbar {
+      margin-bottom: 1rem;
+    }
+    .dropdowns {
+      display: flex;
+      gap: 10px;
+    }
+    .graph-section {
+      height: 30vh;
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1rem;
+    }
+    .graph {
+      flex: 1;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+      padding: 1rem;
+    }
+    .action-buttons {
+      display: flex;
+      justify-content: end;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .action-buttons button {
+      height: 5vh;
+    }
+    table th input, table th select {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="#">CVE Dashboard</a>
+    <div class="ms-auto dropdowns">
+      <select id="projectBranchSelect" class="form-select">
+        <option selected>Select Project & Branch</option>
+        <!-- Dynamically populated -->
+      </select>
+      <select id="releaseSelect" class="form-select">
+        <option selected>Select Release</option>
+        <!-- Dynamically populated -->
+      </select>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="action-buttons">
+      <button class="btn btn-primary">Assign</button>
+      <button class="btn btn-secondary">Export</button>
+      <button class="btn btn-warning">Mark Fixed</button>
+      <button class="btn btn-success">Create Jira</button>
+      <button class="btn btn-outline-dark">Filter Toggle</button>
+    </div>
+
+    <div class="graph-section">
+      <div class="graph" id="toolStatesGraph">
+        <h6>Tool States by Severity</h6>
+        <!-- Bar Chart Here -->
+      </div>
+      <div class="graph" id="topSoftwareGraph">
+        <h6>Top 5 Software CVEs by Severity</h6>
+        <!-- Bar Chart Here -->
+      </div>
+    </div>
+
+    <table class="table table-bordered table-striped" id="cveTable">
+      <thead>
+        <tr>
+          <th><input type="checkbox" /></th>
+          <th>CVE ID <br /><small class="form-text text-muted">(with Sup text)</small></th>
+          <th>Last Updated</th>
+          <th>Description</th>
+          <th>Severity & Score</th>
+          <th>Fixed At</th>
+          <th>Tool Status</th>
+          <th>Jira / Starc</th>
+        </tr>
+        <tr class="filter-row d-none">
+          <th></th>
+          <th><input class="form-control" type="text" placeholder="Filter ID" /></th>
+          <th><input class="form-control" type="date" /></th>
+          <th><input class="form-control" type="text" placeholder="Search desc" /></th>
+          <th>
+            <select class="form-select" multiple>
+              <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
+            </select>
+          </th>
+          <th></th>
+          <th>
+            <select class="form-select" multiple>
+              <!-- 11 tool states here -->
+              <option>State 1</option>
+              <option>State 2</option>
+              <!-- etc -->
+            </select>
+          </th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamically injected CVE rows -->
+        <tr>
+          <td><input type="checkbox" /></td>
+          <td>CVE-2023-1234<br /><sup>Extra text</sup></td>
+          <td>2025-06-10</td>
+          <td>Buffer overflow in XYZ component</td>
+          <td>High (8.5)</td>
+          <td><input type="text" class="form-control form-control-sm" value="" maxlength="10" /></td>
+          <td>
+            <select class="form-select">
+              <option>Open</option>
+              <option>Fixed</option>
+              <option>In Progress</option>
+            </select>
+          </td>
+          <td>JIRA-123<br />STARC-456</td>
+        </tr>
+        <!-- More rows -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $(".btn-outline-dark").click(function () {
+        $(".filter-row").toggleClass("d-none");
+      });
+
+      // Example: Change releases based on project+branch selection
+      $('#projectBranchSelect').change(function () {
+        const selected = $(this).val();
+        $('#releaseSelect').empty().append(`<option>Select Release for ${selected}</option>`);
+        // Fetch related releases and append here
+      });
+    });
+  </script>
+</body>
+</html>
